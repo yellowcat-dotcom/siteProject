@@ -1,0 +1,24 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="{% static 'css/employee.css' %}">
+</head>
+<body>
+<h1>Сотрудники:</h1>
+<div class="employee-container">
+  {% for employee in employees %}
+  <div>
+    <img class="employee-photo" src="{{ employee.photo.url }}">
+    <p class="employee-info">{{ employee.first_name }} {{ employee.last_name }} {{ employee.middle_name }}</p>
+    <p class="employee-info">{{ employee.department }}</p>
+  </div>
+  {% if forloop.counter|divisibleby:2 and not forloop.last %}
+</div>
+<div class="employee-container">
+  {% endif %}
+  {% endfor %}
+</div>
+</body>
+</html>

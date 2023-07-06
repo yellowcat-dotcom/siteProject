@@ -1,0 +1,27 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="{% static 'css/configuration.css' %}">
+</head>
+<body>
+  <h1>Переговорные аудитории:</h1>
+{% for meetingRoom  in meetingRooms %}
+<div>
+    <p>{{ meetingRoom.number }}
+      {{ meetingRoom.floor }} этаж
+      Вместимость {{ meetingRoom.capacity }} человек
+      {% if meetingRoom.has_tv %}
+      С телевизором
+    {% else %}
+    Без телевизора
+    {% endif %}
+    </p>
+    <p>забронирована {{ meetingRoom.reserved_by}}
+      включая участников: {{ meetingRoom.participants}}
+      на время {{ meetingRoom.booking_duration}}</p>
+</div>
+{% endfor %}
+</body>
+</html>

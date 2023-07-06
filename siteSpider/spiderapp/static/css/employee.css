@@ -1,0 +1,27 @@
+div.employee-container {
+  width: 50%;
+  float: left;
+  text-align: center;
+}
+
+img.employee-photo {
+  display: block;
+  margin-top: 80px;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 50%;
+  max-height: 50%;
+}
+
+p.employee-info {
+  font-family: 'Better VCR', sans-serif;
+  color: #000000; /* Черный цвет */
+  font-size: 150%;
+  text-align: center;
+}
+h1 {
+  text-align: center;
+  font-family: 'Better VCR', sans-serif;
+  color: #FFD700;; /* Лимонный цвет */
+  font-size: 300%;
+}
