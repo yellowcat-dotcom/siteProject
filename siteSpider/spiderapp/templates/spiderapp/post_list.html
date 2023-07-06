@@ -1,0 +1,17 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  <link rel="stylesheet" href="{% static 'css/spiderapp.css' %}">
+</head>
+<body>
+  <h1>SPIDER GROUP</h1>
+    <ul>
+        <li><a href=" ">Список отделов</a></li>
+        <li><a href=" ">Список сотрудников</a></li>
+        <li><a href=" ">Список переговорных</a></li>
+        <li><a href="{% url 'configuration' %}">Конфигурация</a></li>
+    </ul>
+</body>
+</html>

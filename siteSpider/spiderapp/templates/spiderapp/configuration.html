@@ -1,0 +1,14 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  <link rel="stylesheet" href="{% static 'css/spiderapp.css' %}">
+</head>
+<body>
+<h1>О нас:</h1>
+<p>Адрес: {{ configuration.address }}</p>
+<p>Время работы: {{ configuration.working_hours }}</p>
+<img src="{{configuration.office_photo.url}}">
+</body>
+</html>
