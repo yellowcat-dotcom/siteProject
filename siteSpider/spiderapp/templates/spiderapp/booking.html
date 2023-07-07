@@ -1,0 +1,41 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Booking</title>
+</head>
+<body>
+  <h1>Бронирование переговорной</h1>
+  <form method="POST" action="{% url 'booking' meeting_room.id %}">
+    {% csrf_token %}
+    <div>
+        <label for="reserved_by">Забронировано</label>
+        <select name="reserved_by" id="reserved_by" required>
+            <option value="">Выберите работника</option>
+            {% for employee in employees %}
+                <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="participants">Участники (через запятую)</label>
+        <select name="participants" id="participants" multiple required>
+            {% for employee in employees %}
+                <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="start_time">Начало бронирования</label>
+        <input type="datetime-local" name="start_time" id="start_time" required>
+    </div>
+    <div>
+        <label for="end_time">Конец бронирования</label>
+        <input type="datetime-local" name="end_time" id="end_time" required>
+    </div>
+    <div>
+        <input type="submit" value="Забронировать">
+    </div>
+  </form>
+</body>
+</html>

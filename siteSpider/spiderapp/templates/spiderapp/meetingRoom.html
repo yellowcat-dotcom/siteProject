@@ -27,9 +27,10 @@
         <p>
             <span>С {{ meetingRoom.start_time }} по {{ meetingRoom.end_time }}</span>
         </p>
-        <button>Редактировать</button>
+        <a href="{% url 'edit_booking' meetingRoom.id %}"><button>Редактировать</button></a>
+        <a href="{% url 'delete_booking' meetingRoom.id %}"><button>Удалить бронирование</button></a>
     {% else %}
-        <a href=""><button>Забронировать</button></a>
+        <a href="{% url 'booking' meetingRoom.id %}"><button>Забронировать</button></a>
     {% endif %}
 </div>
 

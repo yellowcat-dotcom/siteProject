@@ -1,0 +1,40 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Редактирование бронирования</title>
+</head>
+<body>
+  <h1>Редактирование бронирования</h1>
+  <form method="POST" action="{% url 'edit_booking' meeting_room.id %}">
+    {% csrf_token %}
+    <div>
+        <label for="reserved_by">Забронировано</label>
+        <select name="reserved_by" id="reserved_by" required>
+            {% for employee in employees %}
+                <option value="{{ employee.id }}" {% if meeting_room.reserved_by and meeting_room.reserved_by.id == employee.id %}selected{% endif %}>{{ employee }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="participants">Участники (через запятую)</label>
+        <select multiple name="participants" id="participants" required>
+            {% for employee in employees %}
+                <option value="{{ employee.id }}" {% if employee in selected_participants %}selected{% endif %}>{{ employee }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="start_time">Начало бронирования</label>
+        <input type="datetime-local" name="start_time" id="start_time" value="{{ meeting_room.start_time|date:'Y-m-d\TH:i' }}" required>
+    </div>
+    <div>
+        <label for="end_time">Конец бронирования</label>
+        <input type="datetime-local" name="end_time" id="end_time" value="{{ meeting_room.end_time|date:'Y-m-d\TH:i' }}" required>
+    </div>
+    <div>
+        <input type="submit" value="Сохранить">
+    </div>
+  </form>
+</body>
+</html>
