@@ -9,19 +9,31 @@
   <h1>Переговорные аудитории:</h1>
 {% for meetingRoom  in meetingRooms %}
 <div>
-    <p>{{ meetingRoom.number }}
-      {{ meetingRoom.floor }} этаж
-      Вместимость {{ meetingRoom.capacity }} человек
-      {% if meetingRoom.has_tv %}
-      С телевизором
-    {% else %}
-    Без телевизора
-    {% endif %}
+    <p>
+        <span>{{ meetingRoom.number }}</span>
+        <span>({{ meetingRoom.floor }} этаж)</span>
+        <span>Вместимость: {{ meetingRoom.capacity }} человек</span>
+        {% if meetingRoom.has_tv %}
+            <span>С телевизором</span>
+        {% else %}
+            <span>Без телевизора</span>
+        {% endif %}
     </p>
-    <p>забронирована {{ meetingRoom.reserved_by}}
-      включая участников: {{ meetingRoom.participants}}
-      на время {{ meetingRoom.booking_duration}}</p>
+    {% if meetingRoom.reserved_by %}
+        <p>
+            <span>Забронирована: {{ meetingRoom.reserved_by }}</span>
+            <span>( {{ meetingRoom.participants.all|join:", " }} )</span>
+        </p>
+        <p>
+            <span>С {{ meetingRoom.start_time }} по {{ meetingRoom.end_time }}</span>
+        </p>
+        <button>Редактировать</button>
+    {% else %}
+        <a href=""><button>Забронировать</button></a>
+    {% endif %}
 </div>
+
+
 {% endfor %}
 </body>
 </html>

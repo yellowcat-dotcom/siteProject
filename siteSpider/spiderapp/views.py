@@ -24,3 +24,4 @@ def employee_view(request):
 def meetingRoom_view(request):
     meetingRooms = MeetingRoom.objects.all()
     return render(request, 'spiderapp/meetingRoom.html', {'meetingRooms': meetingRooms})
+

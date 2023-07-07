@@ -26,9 +26,10 @@ class MeetingRoom(models.Model):
     floor = models.IntegerField()
     capacity = models.IntegerField()
     has_tv = models.BooleanField()
-    reserved_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, related_name='reserved_rooms')
-    participants = models.ManyToManyField(Employee, related_name='meeting_rooms')
-    booking_duration = models.DurationField()
+    reserved_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, related_name='reserved_rooms')
+    participants = models.ManyToManyField(Employee, blank=True, related_name='meeting_rooms')
+    start_time = models.DateTimeField(blank=True, null=True)
+    end_time = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return self.number
