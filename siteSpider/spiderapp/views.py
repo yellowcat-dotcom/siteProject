@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect,  get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Configuration, Department, Employee, MeetingRoom
 
 
@@ -18,7 +18,15 @@ def department_view(request):
 
 def employee_view(request):
     employees = Employee.objects.all()
-    return render(request, 'spiderapp/employee.html', {'employees': employees})
+    departments = Department.objects.all()
+    department_id = request.GET.get('department')  # Получите выбранный отдел из параметров запроса
+    reset = request.GET.get('reset')  # Получите параметр сброса фильтрации
+
+    if reset:
+        department_id = None  # Сбросить выбранный отдел
+
+    return render(request, 'spiderapp/employee.html', {'employees': employees, 'departments': departments, 'department_id': department_id})
+
 
 
 def meetingRoom_view(request):
@@ -94,3 +102,17 @@ def delete_booking_view(request, meeting_room_id):
     meeting_room.end_time = None
     meeting_room.save()
     return redirect('meetingRooms')
+
+
+def filter_employees(request):
+    department_id = request.GET.get('department')  # Получаем значение поля department из запроса
+    employees = Employee.objects.all()
+
+    if department_id:
+        employees = employees.filter(department_id=department_id)  # Фильтрация сотрудников по значению department_id
+
+    context = {
+        'employees': employees,
+    }
+
+    return render(request, 'spiderapp/employee.html', context)

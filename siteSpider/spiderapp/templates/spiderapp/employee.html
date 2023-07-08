@@ -7,6 +7,20 @@
 </head>
 <body>
 <h1>Сотрудники:</h1>
+
+<form action="{% url 'filter_employees' %}" method="GET">
+    <select name="department">
+    <option value="" {% if not department_id %}selected{% endif %}>Все отделы</option>
+    {% for department in departments %}
+        <option value="{{ department.id }}" {% if department.id|slugify == department_id %}selected{% endif %}>{{ department }}</option>
+    {% endfor %}
+</select>
+    <button type="submit">Фильтровать</button>
+</form>
+<form action="{% url 'employees' %}" method="GET">
+    <button type="submit">Сбросить фильтр</button>
+</form>
+
 <div class="employee-container">
   {% for employee in employees %}
   <div>
