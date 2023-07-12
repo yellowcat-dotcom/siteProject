@@ -1,5 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from .models import Configuration, Department, Employee, MeetingRoom
+from .serializers import ConfigurationSerializer, DepartmentSerializer, MeetingRoomSerializer, EmployeeSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import generics, status, viewsets
 
 
 def post_list(request):
@@ -25,8 +30,8 @@ def employee_view(request):
     if reset:
         department_id = None  # Сбросить выбранный отдел
 
-    return render(request, 'spiderapp/employee.html', {'employees': employees, 'departments': departments, 'department_id': department_id})
-
+    return render(request, 'spiderapp/employee.html',
+                  {'employees': employees, 'departments': departments, 'department_id': department_id})
 
 
 def meetingRoom_view(request):
@@ -44,7 +49,7 @@ def booking_view(request, meeting_room_id):
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
 
-        # Получить объекты работников и сохранить данные в БД
+        # Получить объекты сотрудников и сохранить данные в БД
         reserved_by = Employee.objects.get(id=reserved_by_id)
         participants = Employee.objects.filter(id__in=participants_ids)
 
@@ -116,3 +121,81 @@ def filter_employees(request):
     }
 
     return render(request, 'spiderapp/employee.html', context)
+
+
+# представления для Rest Framework
+class ConfigurationAPIView(APIView):
+    def get(self, request):
+        configurations = Configuration.objects.all()
+        serializer = ConfigurationSerializer(configurations, many=True)
+        return Response(serializer.data)
+
+    # нужен ли вообще тут метод post
+    # def post(self, request):
+    #     serializer = ConfigurationSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data, status=201)
+    #     return Response(serializer.errors, status=400)
+
+
+class DepartmentListAPIView(generics.ListCreateAPIView):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer
+
+
+class DepartmentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer
+
+#переписать на ge
+class MeetingRoomListAPIView(APIView):
+    def get(self, request):
+        meeting_rooms = MeetingRoom.objects.all()
+        serializer = MeetingRoomSerializer(meeting_rooms, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = MeetingRoomSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MeetingRoomDetailAPIView(APIView):
+    def get(self, request, pk):
+        meeting_room = MeetingRoom.objects.get(pk=pk)
+        serializer = MeetingRoomSerializer(meeting_room)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        meeting_room = MeetingRoom.objects.get(pk=pk)
+        serializer = MeetingRoomSerializer(meeting_room, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        meeting_room = MeetingRoom.objects.get(pk=pk)
+        meeting_room.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# class EmployeeListAPIView(generics.ListCreateAPIView):
+#     queryset = Employee.objects.all()
+#     serializer_class = EmployeeSerializer
+#
+#
+# class EmployeeDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Employee.objects.all()
+#     serializer_class = EmployeeSerializer
+
+
+# использую viewset
+class EmployeeViewSet(viewsets.ModelViewSet):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['department']
