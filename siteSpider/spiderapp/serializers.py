@@ -5,22 +5,22 @@ from .models import Configuration, Department, MeetingRoom, Employee
 class ConfigurationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Configuration
-        fields = '__all__'  # что будем возвращать обратно клиенту
+        fields = ['id', 'address', 'working_hours', 'office_photo']  # что будем возвращать обратно клиенту
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
-        fields = '__all__'
+        fields = ['id', 'name', 'floor']
 
 
 class MeetingRoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = MeetingRoom
-        fields = '__all__'
+        fields = ['id', 'number', 'floor', 'capacity', 'has_tv', 'reserved_by', 'participants', 'start_time', 'end_time']
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
-        fields = '__all__'
+        fields = ['id', 'first_name', 'last_name', 'middle_name', 'photo', 'department']
