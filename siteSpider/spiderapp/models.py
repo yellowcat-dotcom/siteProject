@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 from solo.models import SingletonModel
 
@@ -21,13 +22,26 @@ class Employee(models.Model):
         return f"{self.first_name} {self.last_name}"
 
 
+# новый класс для редактирования связи М2М
+class MeetingParticipant(models.Model):
+    meeting_room = models.ForeignKey('MeetingRoom', on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    order = models.IntegerField(null=True)
+
+
 class MeetingRoom(models.Model):
     number = models.CharField(max_length=10)
     floor = models.IntegerField()
     capacity = models.IntegerField()
     has_tv = models.BooleanField()
-    reserved_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, related_name='reserved_rooms')
-    participants = models.ManyToManyField(Employee, blank=True, related_name='meeting_rooms')
+    reserved_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name='reserved_rooms')
+    # было
+    # participants = models.ManyToManyField(Employee, blank=True, related_name='meeting_rooms')
+
+    # стало
+    participants = models.ManyToManyField(Employee, through=MeetingParticipant, blank=True,
+                                          related_name='meeting_rooms')
     start_time = models.DateTimeField(blank=True, null=True)
     end_time = models.DateTimeField(blank=True, null=True)
 

@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser
 
-from .models import Configuration, Department, Employee, MeetingRoom
-from .serializers import ConfigurationSerializer, DepartmentSerializer, MeetingRoomSerializer, EmployeeSerializer
+from .permissions import IsAdminOrReadOnly
+from .serializers import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import generics, status, viewsets, mixins
+from rest_framework import generics, viewsets, mixins, status
 
 
 def post_list(request):
@@ -127,28 +128,31 @@ def filter_employees(request):
 
 # представления для Rest Framework
 class ConfigurationAPIView(APIView):
+    queryset = Configuration.objects.all()
+    serializer_class = ConfigurationSerializer
+    permission_classes = [IsAdminOrReadOnly]
+
     def get(self, request):
         configurations = Configuration.objects.all()
         serializer = ConfigurationSerializer(configurations, many=True)
         return Response(serializer.data)
 
-    # нужен ли вообще тут метод post
-    # def post(self, request):
-    #     serializer = ConfigurationSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=201)
-    #     return Response(serializer.errors, status=400)
 
+# class DepartmentListAPIView(generics.ListCreateAPIView):
+#     queryset = Department.objects.all()
+#     serializer_class = DepartmentSerializer
+#     permission_classes = [IsAdminOrReadOnly]
+#
+#
+# class DepartmentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Department.objects.all()
+#     serializer_class = DepartmentSerializer
+#     permission_classes = [IsAdminOrReadOnly]
 
-class DepartmentListAPIView(generics.ListCreateAPIView):
+class DepartmentViewSet(viewsets.ModelViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
-
-
-class DepartmentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Department.objects.all()
-    serializer_class = DepartmentSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
 
 # было в прошлый раз
@@ -166,10 +170,15 @@ class DepartmentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 #             return Response(serializer.data, status=status.HTTP_201_CREATED)
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# стало
+# стало (до обновления М2М)
 class MeetingRoomListAPIView(mixins.ListModelMixin, mixins.CreateModelMixin, GenericAPIView):
     queryset = MeetingRoom.objects.all()
     serializer_class = MeetingRoomSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return MeetingRoomCreateSerializer
+        return self.serializer_class
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
@@ -198,6 +207,9 @@ class MeetingRoomListAPIView(mixins.ListModelMixin, mixins.CreateModelMixin, Gen
 #         meeting_room = MeetingRoom.objects.get(pk=pk)
 #         meeting_room.delete()
 #         return Response(status=status.HTTP_204_NO_CONTENT)
+
+# стало (до обновления М2М)
+
 class MeetingRoomDetailAPIView(GenericAPIView, mixins.DestroyModelMixin, mixins.UpdateModelMixin,
                                mixins.RetrieveModelMixin):
     queryset = MeetingRoom.objects.all()
@@ -212,7 +224,13 @@ class MeetingRoomDetailAPIView(GenericAPIView, mixins.DestroyModelMixin, mixins.
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
 
+    def get_serializer_class(self):
+        if self.request.method == 'PUT' or self.request.method == 'PATCH':
+            return MeetingRoomCreateSerializer
+        return self.serializer_class
 
+
+# было до viewset
 # class EmployeeListAPIView(generics.ListCreateAPIView):
 #     queryset = Employee.objects.all()
 #     serializer_class = EmployeeSerializer
@@ -222,10 +240,11 @@ class MeetingRoomDetailAPIView(GenericAPIView, mixins.DestroyModelMixin, mixins.
 #     queryset = Employee.objects.all()
 #     serializer_class = EmployeeSerializer
 
-
 # использую viewset
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['department']
+
