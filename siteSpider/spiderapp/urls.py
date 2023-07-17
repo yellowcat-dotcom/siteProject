@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path, include, re_path
 from . import views
 from .views import *
 from rest_framework import routers
@@ -25,24 +25,12 @@ urlpatterns = [
 
     # маршруты для Rest Framework
     path('api/configuration/', ConfigurationAPIView.as_view(), name='configuration_api'),
-    # path('api/departments/', DepartmentListAPIView.as_view(), name='department-list'),
-    # path('api/departments/<int:pk>/', DepartmentDetailAPIView.as_view(), name='department-detail'),
-
-    # использую viewset path('api/departments/', DepartmentViewSet.as_view({'get': 'list'})),
-    # path('api/departments/<int:pk>/', DepartmentViewSet.as_view({'put': 'update', 'get': 'retrieve',
-    # 'delete': 'destroy'})),
-
     path('api/', include(routerDepartments.urls)),
     path('api/meeting-rooms/', MeetingRoomListAPIView.as_view(), name='meeting-rooms-list'),
     path('api/meeting-rooms/<int:pk>/', MeetingRoomDetailAPIView.as_view(), name='meeting-room-detail'),
-
-    # path('api/employees/', EmployeeListAPIView.as_view(), name='employee-list'),
-    # path('api/employees/<int:pk>/', EmployeeDetailAPIView.as_view(), name='employee-detail'),
-
-    # использую viewset
-    # path('api/employees/', EmployeeViewSet.as_view({'get': 'list'})),
-    # path('api/employees/<int:pk>/', EmployeeViewSet.as_view({'put': 'update'})),
-
     # использование SimpleRouter
     path('api/', include(routerEmployees.urls)),
+    path('api/auth/', include('djoser.urls')),
+    re_path(r'^auth/', include('djoser.urls.authtoken'))
+
 ]
