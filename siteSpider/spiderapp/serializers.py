@@ -46,23 +46,33 @@ class MeetingRoomSerializer(serializers.ModelSerializer):
                   'end_time']
 
 
-class MeetingRoomCreateSerializer(serializers.ModelSerializer):
+class MeetingRoomDetailSerializer(serializers.ModelSerializer):
     participants = serializers.PrimaryKeyRelatedField(
         queryset=Employee.objects.all(),
         many=True,
         required=False
     )
 
-    class Meta:
-        model = MeetingRoom
-        fields = ['id', 'number', 'floor', 'capacity', 'has_tv', 'reserved_by', 'participants', 'start_time',
-                  'end_time']
-
     def validate(self, attrs):
         start_time = attrs.get('start_time')
         end_time = attrs.get('end_time')
-        if start_time > end_time:
-            raise serializers.ValidationError('Время окончание раньше времени начала')
-        if start_time < timezone.now():
-            raise serializers.ValidationError('Вреимя начала уже прошло')
+
+        if start_time and end_time:
+            if start_time > end_time:
+                raise serializers.ValidationError('Время окончания раньше времени начала')
+            if start_time < timezone.now():
+                raise serializers.ValidationError('Время начала уже прошло')
+        else:
+            raise serializers.ValidationError('Необходимо указать и время начала, и время окончания')
+
         return attrs
+
+    class Meta:
+        model = MeetingRoom
+        fields = ['reserved_by', 'participants', 'start_time', 'end_time']
+
+
+class MeetingRoomPostAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MeetingRoom
+        fields = ['number', 'floor', 'capacity', 'has_tv']

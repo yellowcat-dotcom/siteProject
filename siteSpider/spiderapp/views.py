@@ -1,13 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from .permissions import IsAdminOrReadOnly
 from .serializers import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import generics, viewsets, mixins, status
+from rest_framework import viewsets, mixins, status
 
 
 def post_list(request):
@@ -127,6 +127,7 @@ def filter_employees(request):
 
 
 # представления для Rest Framework
+
 class ConfigurationAPIView(APIView):
     queryset = Configuration.objects.all()
     serializer_class = ConfigurationSerializer
@@ -138,46 +139,28 @@ class ConfigurationAPIView(APIView):
         return Response(serializer.data)
 
 
-# class DepartmentListAPIView(generics.ListCreateAPIView):
-#     queryset = Department.objects.all()
-#     serializer_class = DepartmentSerializer
-#     permission_classes = [IsAdminOrReadOnly]
-#
-#
-# class DepartmentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = Department.objects.all()
-#     serializer_class = DepartmentSerializer
-#     permission_classes = [IsAdminOrReadOnly]
-
 class DepartmentViewSet(viewsets.ModelViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
     permission_classes = [IsAdminOrReadOnly]
 
 
-# было в прошлый раз
-# class MeetingRoomListAPIView(APIView):
-#
-#     def get(self, request):
-#         meeting_rooms = MeetingRoom.objects.all()
-#         serializer = MeetingRoomSerializer(meeting_rooms, many=True)
-#         return Response(serializer.data)
-#
-#     def post(self, request):
-#         serializer = MeetingRoomSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class EmployeeViewSet(viewsets.ModelViewSet):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['department']
 
-# стало (до обновления М2М)
+
 class MeetingRoomListAPIView(mixins.ListModelMixin, mixins.CreateModelMixin, GenericAPIView):
     queryset = MeetingRoom.objects.all()
     serializer_class = MeetingRoomSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
-            return MeetingRoomCreateSerializer
+            return MeetingRoomPostAdminSerializer
         return self.serializer_class
 
     def get(self, request, *args, **kwargs):
@@ -187,33 +170,11 @@ class MeetingRoomListAPIView(mixins.ListModelMixin, mixins.CreateModelMixin, Gen
         return self.create(request, *args, **kwargs)
 
 
-# было в прошлый раз
-
-# class MeetingRoomDetailAPIView(APIView):
-#     def get(self, request, pk):
-#         meeting_room = MeetingRoom.objects.get(pk=pk)
-#         serializer = MeetingRoomSerializer(meeting_room)
-#         return Response(serializer.data)
-#
-#     def put(self, request, pk):
-#         meeting_room = MeetingRoom.objects.get(pk=pk)
-#         serializer = MeetingRoomSerializer(meeting_room, data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
-#     def delete(self, request, pk):
-#         meeting_room = MeetingRoom.objects.get(pk=pk)
-#         meeting_room.delete()
-#         return Response(status=status.HTTP_204_NO_CONTENT)
-
-# стало (до обновления М2М)
-
 class MeetingRoomDetailAPIView(GenericAPIView, mixins.DestroyModelMixin, mixins.UpdateModelMixin,
                                mixins.RetrieveModelMixin):
     queryset = MeetingRoom.objects.all()
     serializer_class = MeetingRoomSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
@@ -222,29 +183,18 @@ class MeetingRoomDetailAPIView(GenericAPIView, mixins.DestroyModelMixin, mixins.
         return self.update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
+        instance = self.get_object()
+
+        # Очистка полей reserved_by, participants, start_time и end_time
+        instance.reserved_by = None
+        instance.participants.clear()
+        instance.start_time = None
+        instance.end_time = None
+
+        instance.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_serializer_class(self):
         if self.request.method == 'PUT' or self.request.method == 'PATCH':
-            return MeetingRoomCreateSerializer
+            return MeetingRoomDetailSerializer
         return self.serializer_class
-
-
-# было до viewset
-# class EmployeeListAPIView(generics.ListCreateAPIView):
-#     queryset = Employee.objects.all()
-#     serializer_class = EmployeeSerializer
-#
-#
-# class EmployeeDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = Employee.objects.all()
-#     serializer_class = EmployeeSerializer
-
-# использую viewset
-class EmployeeViewSet(viewsets.ModelViewSet):
-    queryset = Employee.objects.all()
-    serializer_class = EmployeeSerializer
-    permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['department']
-
