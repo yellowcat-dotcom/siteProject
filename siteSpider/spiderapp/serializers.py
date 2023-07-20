@@ -1,6 +1,6 @@
 from django.utils import timezone
 from rest_framework import serializers
-from .models import Configuration, Department, MeetingRoom, Employee
+from .models import *
 
 
 class ConfigurationSerializer(serializers.ModelSerializer):
@@ -14,6 +14,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
         model = Department
         fields = ['id', 'name', 'floor']
 
+    # получается тут уже и валидаторы не нужны
     def validate_name(self, value):
         if Department.objects.filter(name=value).exists():
             raise serializers.ValidationError("Отдел с таким названием уже существует.")
@@ -32,31 +33,24 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 
 class MeetingRoomSerializer(serializers.ModelSerializer):
-    participants = serializers.StringRelatedField(many=True)
-    reserved_by = serializers.SerializerMethodField()
-
-    def get_participants(self, obj):
-        participants = obj.participants.all()
-        reserved_by = obj.reserved_by
-        participant_list = []
-        for participant in participants:
-            if participant != reserved_by:
-                participant_list.append(participant.last_name + ' ' + participant.first_name)
-        return participant_list
-
-    def get_reserved_by(self, obj):
-        reserved_by = obj.reserved_by
-        if reserved_by:
-            return f"{reserved_by.last_name} {reserved_by.first_name} {reserved_by.middle_name}"
-        return None
-
     class Meta:
         model = MeetingRoom
-        fields = ['id', 'number', 'floor', 'capacity', 'has_tv', 'reserved_by', 'participants', 'start_time',
-                  'end_time']
+        fields = ['id', 'number', 'floor', 'capacity', 'has_tv']
 
 
-class MeetingRoomDetailSerializer(serializers.ModelSerializer):
+class CurrentUserDefault:
+    def set_context(self, serializer_field):
+        self.user = serializer_field.context['request'].user
+
+    def __call__(self):
+        return self.user
+
+
+class ReservationSerializer(serializers.ModelSerializer):
+    meeting_room = serializers.PrimaryKeyRelatedField(
+        queryset=MeetingRoom.objects.all(),
+        required=False
+    )
     participants = serializers.PrimaryKeyRelatedField(
         queryset=Employee.objects.all(),
         many=True,
@@ -77,35 +71,6 @@ class MeetingRoomDetailSerializer(serializers.ModelSerializer):
 
         return attrs
 
-    def validate_participants(self, value):
-        room_capacity = self.instance.capacity if self.instance else self.initial_data.get('capacity', 0)
-        if len(value) > room_capacity - 1:
-            raise serializers.ValidationError("Количество участников превышает вместимость переговорной комнаты.")
-        return value
-
     class Meta:
-        model = MeetingRoom
-        fields = ['reserved_by', 'participants', 'start_time', 'end_time']
-
-
-
-
-class MeetingRoomPostAdminSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MeetingRoom
-        fields = ['number', 'floor', 'capacity', 'has_tv']
-
-    def validate_number(self, value):
-        if MeetingRoom.objects.filter(number=value).exists():
-            raise serializers.ValidationError("Переговорная с таким номером уже существует.")
-        return value
-
-    # def validate_floor(self, value):
-    #     if value < 0:
-    #         raise serializers.ValidationError('Значение этажа не может быть отрицательным.')
-    #     return value
-
-    def validate_capacity(self, value):
-        if value < 0:
-            raise serializers.ValidationError('Значение вместимости не может быть отрицательным.')
-        return value
+        model = Reservation
+        fields = ['id', 'meeting_room', 'reserved_by', 'participants', 'start_time', 'end_time']

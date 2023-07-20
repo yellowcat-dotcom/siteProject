@@ -1,15 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-
-from .filters import MeetingRoomFilterSet
-from .permissions import IsAdminOrReadOnly
+from rest_framework.generics import GenericAPIView, ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from .permissions import IsReadOnly
 from .serializers import *
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import viewsets, mixins, status
-
+from rest_framework import viewsets, mixins
 
 def post_list(request):
     return render(request, 'spiderapp/post_list.html', {})
@@ -129,75 +123,50 @@ def filter_employees(request):
 
 # представления для Rest Framework
 
-class ConfigurationAPIView(APIView):
+class ConfigurationAPIView(ListAPIView):
     queryset = Configuration.objects.all()
     serializer_class = ConfigurationSerializer
-    permission_classes = [IsAdminOrReadOnly]
 
-    def get(self, request):
-        configurations = Configuration.objects.all()
-        serializer = ConfigurationSerializer(configurations, many=True)
-        return Response(serializer.data)
+    # нужно ли прописывать права доступа, если в данных представлениях есть только get запрос?
+    permission_classes = [IsReadOnly]
 
 
-class DepartmentViewSet(viewsets.ModelViewSet):
+class DepartmentViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
-    permission_classes = [IsAdminOrReadOnly]
+
+    # нужно ли прописывать права доступа, если в данных представлениях есть только get запрос?
+    permission_classes = [IsReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['floor']
 
 
-class EmployeeViewSet(viewsets.ModelViewSet):
+class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    permission_classes = [IsAdminOrReadOnly]
+
+    # нужно ли прописывать права доступа, если в данных представлениях есть только get запрос?
+    permission_classes = [IsReadOnly]
+
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['department']
 
 
-class MeetingRoomListAPIView(mixins.ListModelMixin, mixins.CreateModelMixin, GenericAPIView):
+class MeetingRoomViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MeetingRoom.objects.all()
     serializer_class = MeetingRoomSerializer
-    permission_classes = [IsAdminOrReadOnly]
+
+    # нужно ли прописывать права доступа, если в данных представлениях есть только get запрос?
+    permission_classes = [IsReadOnly]
+
     filter_backends = [DjangoFilterBackend]
-    filterset_class = MeetingRoomFilterSet
-
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return MeetingRoomPostAdminSerializer
-        return self.serializer_class
-    #
-    # def get(self, request, *args, **kwargs):
-    #     return self.list(request, *args, **kwargs)
-    #
-    # def post(self, request, *args, **kwargs):
-    #     return self.create(request, *args, **kwargs)
+    filterset_fields = ['floor', 'capacity', 'has_tv']
 
 
-class MeetingRoomDetailAPIView(GenericAPIView, mixins.DestroyModelMixin, mixins.UpdateModelMixin,
-                               mixins.RetrieveModelMixin):
-    queryset = MeetingRoom.objects.all()
-    serializer_class = MeetingRoomSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+class ReservationListAPIView(ListCreateAPIView):
+    queryset = Reservation.objects.all()
+    serializer_class = ReservationSerializer
 
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        instance = self.get_object()
-
-        # Очистка полей reserved_by, participants, start_time и end_time
-        instance.reserved_by = None
-        instance.participants.clear()
-        instance.start_time = None
-        instance.end_time = None
-
-        instance.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def get_serializer_class(self):
-        if self.request.method == 'PUT' or self.request.method == 'PATCH':
-            return MeetingRoomDetailSerializer
-        return self.serializer_class
+class ReservationDetailAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Reservation.objects.all()
+    serializer_class = ReservationSerializer

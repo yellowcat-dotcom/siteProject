@@ -3,14 +3,10 @@ from . import views
 from .views import *
 from rest_framework import routers
 
-# router = routers.SimpleRouter()
-# router.register(r'employees', EmployeeViewSet)
-
-routerEmployees = routers.DefaultRouter()
-routerEmployees.register(r'employees', EmployeeViewSet)
-
-routerDepartments = routers.DefaultRouter()
-routerDepartments.register(r'departments', DepartmentViewSet)
+router = routers.DefaultRouter()
+router.register(r'departments', DepartmentViewSet)
+router.register(r'employees', EmployeeViewSet)
+router.register(r'meeting-rooms', MeetingRoomViewSet)
 
 urlpatterns = [
     path('', views.post_list, name='post_list'),
@@ -25,11 +21,11 @@ urlpatterns = [
 
     # маршруты для Rest Framework
     path('api/configuration/', ConfigurationAPIView.as_view(), name='configuration_api'),
-    path('api/', include(routerDepartments.urls)),
-    path('api/meeting-rooms/', MeetingRoomListAPIView.as_view(), name='meeting-rooms-list'),
-    path('api/meeting-rooms/<int:pk>/', MeetingRoomDetailAPIView.as_view(), name='meeting-room-detail'),
-    # использование SimpleRouter
-    path('api/', include(routerEmployees.urls)),
+    path('api/', include(router.urls)),
+    path('api/reservations/', ReservationListAPIView.as_view(), name='reservations-list'),
+    path('api/reservations/<int:pk>/', ReservationDetailAPIView.as_view(), name='reservations-detail'),
+
+    # для токенов
     path('api/auth/', include('djoser.urls')),
     re_path(r'^auth/', include('djoser.urls.authtoken'))
 
