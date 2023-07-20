@@ -3,6 +3,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
+from .filters import MeetingRoomFilterSet
 from .permissions import IsAdminOrReadOnly
 from .serializers import *
 from rest_framework.views import APIView
@@ -157,17 +158,19 @@ class MeetingRoomListAPIView(mixins.ListModelMixin, mixins.CreateModelMixin, Gen
     queryset = MeetingRoom.objects.all()
     serializer_class = MeetingRoomSerializer
     permission_classes = [IsAdminOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = MeetingRoomFilterSet
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return MeetingRoomPostAdminSerializer
         return self.serializer_class
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+    #
+    # def get(self, request, *args, **kwargs):
+    #     return self.list(request, *args, **kwargs)
+    #
+    # def post(self, request, *args, **kwargs):
+    #     return self.create(request, *args, **kwargs)
 
 
 class MeetingRoomDetailAPIView(GenericAPIView, mixins.DestroyModelMixin, mixins.UpdateModelMixin,

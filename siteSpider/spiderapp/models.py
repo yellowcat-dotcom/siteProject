@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from solo.models import SingletonModel
+from django.core.validators import validate_integer, MinValueValidator
 
 
 class Department(models.Model):
@@ -31,7 +32,7 @@ class MeetingParticipant(models.Model):
 
 class MeetingRoom(models.Model):
     number = models.CharField(max_length=10)
-    floor = models.IntegerField()
+    floor = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     capacity = models.IntegerField()
     has_tv = models.BooleanField()
     reserved_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
@@ -41,6 +42,7 @@ class MeetingRoom(models.Model):
 
     # стало
     participants = models.ManyToManyField(Employee, through=MeetingParticipant, blank=True,
+                                          symmetrical=True,
                                           related_name='meeting_rooms')
     start_time = models.DateTimeField(blank=True, null=True)
     end_time = models.DateTimeField(blank=True, null=True)

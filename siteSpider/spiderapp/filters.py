@@ -1,5 +1,6 @@
 import django_filters
-from .models import Employee
+from django_filters import FilterSet, CharFilter, ModelChoiceFilter
+from .models import Employee, MeetingRoom, Department
 
 
 class EmployeeFilter(django_filters.FilterSet):
@@ -7,4 +8,12 @@ class EmployeeFilter(django_filters.FilterSet):
 
     class Meta:
         model = Employee
+        fields = ['department']
+
+
+class MeetingRoomFilterSet(FilterSet):
+    department = ModelChoiceFilter(field_name='reserved_by__department', queryset=Department.objects.all())
+
+    class Meta:
+        model = MeetingRoom
         fields = ['department']
