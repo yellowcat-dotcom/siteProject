@@ -74,3 +74,18 @@ class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         fields = ['id', 'meeting_room', 'reserved_by', 'participants', 'start_time', 'end_time']
+
+
+class ReservationCreateSerializer(serializers.ModelSerializer):
+    participants = serializers.PrimaryKeyRelatedField(
+        queryset=Employee.objects.all(),
+        many=True,
+        required=False
+    )
+    reserved_by = serializers.PrimaryKeyRelatedField(
+        queryset=Employee.objects.all(),
+        default=serializers.CurrentUserDefault()
+    )
+    class Meta:
+        model = Reservation
+        fields = ['id', 'meeting_room', 'reserved_by', 'participants', 'start_time', 'end_time']

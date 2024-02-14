@@ -26,7 +26,8 @@ urlpatterns = [
     path('api/reservations/<int:pk>/', ReservationDetailAPIView.as_view(), name='reservations-detail'),
 
     # для токенов
-    path('api/auth/', include('djoser.urls')),
-    re_path(r'^auth/', include('djoser.urls.authtoken'))
+    path('api/token/', CustomObtainAuthToken.as_view(), name='token_obtain_pair'),
+    # path('api/auth/', include('djoser.urls')),
+    # re_path(r'^auth/', include('djoser.urls.authtoken'))
 
 ]
